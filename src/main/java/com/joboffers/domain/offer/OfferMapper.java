@@ -25,9 +25,9 @@ class OfferMapper {
 
     static Offer mapFromOfferResponseToOffer(JobOfferResponse jobOfferResponse) {
         return Offer.builder()
-                .url(jobOfferResponse.url())
-                .jobTitle(jobOfferResponse.jobTitle())
-                .companyName(jobOfferResponse.companyName())
+                .url(jobOfferResponse.offerUrl())
+                .jobTitle(jobOfferResponse.title())
+                .companyName(jobOfferResponse.company())
                 .salary(jobOfferResponse.salary())
                 .build();
     }

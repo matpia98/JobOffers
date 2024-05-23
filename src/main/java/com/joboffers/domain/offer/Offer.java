@@ -10,5 +10,5 @@ public class Offer {
     private String url;
     private String jobTitle;
     private String companyName;
-    private Integer salary;
+    private String salary;
 }

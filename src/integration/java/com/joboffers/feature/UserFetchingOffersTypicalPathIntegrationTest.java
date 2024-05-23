@@ -1,13 +1,34 @@
 package com.joboffers.feature;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.joboffers.SampleJobOfferResponse;
+import com.joboffers.domain.offer.OfferFetcher;
+import com.joboffers.domain.offer.dto.JobOfferResponse;
 import org.junit.jupiter.api.Test;
 import com.joboffers.BaseIntegrationTest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 
-public class UserFetchingOffersTypicalPathIntegrationTest extends BaseIntegrationTest {
+import java.util.List;
+
+
+public class UserFetchingOffersTypicalPathIntegrationTest extends BaseIntegrationTest implements SampleJobOfferResponse {
+
+    @Autowired
+    OfferFetcher offerHttpClient;
 
     @Test
     public void should_scheduler_fetch_offers_from_external_http_server_and_user_should_see_them() {
     //   step 1: there are no offers in external HTTP server (http://ec2-3-120-147-150.eu-central-1.compute.amazonaws.com:5057/offers)
+        // given
+        wireMockServer.stubFor(WireMock.get("/offers")
+                .willReturn(WireMock.aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(bodyWithZeroOffersJson())));
+        // when
+        List<JobOfferResponse> fetchedOffers = offerHttpClient.fetchOffers();
+        // then
     //   step 2: scheduler ran 1st time and made GET to external server and system added 0 offers to database
     //   step 3: user tried to get JWT token by requesting POST /token with username=someUser, password=somePassword and system returned UNAUTHORIZED(401)
     //   step 4: user made GET /offers with no jwt token and system returned UNAUTHORIZED(401)

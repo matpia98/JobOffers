@@ -34,7 +34,7 @@ class OfferService {
                 .map(Offer::getUrl)
                 .toList();
         return fetchedOffers.stream()
-                .filter(jobOfferResponse -> !existingUrls.contains(jobOfferResponse.url()))
+                .filter(jobOfferResponse -> !existingUrls.contains(jobOfferResponse.offerUrl()))
                 .collect(Collectors.toList());
     }
 }

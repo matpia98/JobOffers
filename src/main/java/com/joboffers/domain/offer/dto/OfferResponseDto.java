@@ -8,6 +8,6 @@ public record OfferResponseDto(
         String url,
         String jobTitle,
         String companyName,
-        Integer salary
+        String salary
 ) {
 }
