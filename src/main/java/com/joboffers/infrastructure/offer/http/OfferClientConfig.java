@@ -18,18 +18,18 @@ public class OfferClientConfig {
 
 
     @Bean
-    public RestTemplate restTemplate(RestTemplateResponseErrorHandler restTemplateResponseErrorHandler) {
+    public RestTemplate restTemplate(RestTemplateResponseErrorHandler restTemplateResponseErrorHandler,
+                                     OfferFetcherRestTemplateClientConfigurationProperties properties) {
         return new RestTemplateBuilder()
                 .errorHandler(restTemplateResponseErrorHandler)
-                .setConnectTimeout(Duration.ofMillis(5000))
-                .setReadTimeout(Duration.ofMillis(5000))
+                .setConnectTimeout(Duration.ofMillis(properties.connectionTimeout()))
+                .setReadTimeout(Duration.ofMillis(properties.readTimeout()))
                 .build();
     }
 
     @Bean
     public OfferHttpClient offerFetcherRestTemplateClient(RestTemplate restTemplate,
-                                                          @Value("${offer.http.client.config.uri}") String uri,
-                                                          @Value("${offer.http.client.config.port}") int port) {
-        return new OfferHttpClient(restTemplate, uri, port);
+                                                          OfferFetcherRestTemplateClientConfigurationProperties properties) {
+        return new OfferHttpClient(restTemplate, properties.uri(), properties.port());
     }
 }

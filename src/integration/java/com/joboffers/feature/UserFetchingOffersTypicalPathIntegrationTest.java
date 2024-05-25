@@ -25,7 +25,7 @@ public class UserFetchingOffersTypicalPathIntegrationTest extends BaseIntegratio
                 .willReturn(WireMock.aResponse()
                         .withStatus(HttpStatus.OK.value())
                         .withHeader("Content-Type", "application/json")
-                        .withBody(bodyWithZeroOffersJson())));
+                        .withBody(bodyWithFourOffersJson())));
         // when
         List<JobOfferResponse> fetchedOffers = offerHttpClient.fetchOffers();
         // then
