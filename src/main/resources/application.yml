@@ -4,6 +4,7 @@ spring:
       uri: mongodb://admin:admin@localhost:27018/offers
 
 offer:
+  fetchOffersOccurrence: "0 0 */3 * * ?"
   http:
     client:
       config:
@@ -11,3 +12,6 @@ offer:
         readTimeout: 1000
         uri: http://ec2-3-120-147-150.eu-central-1.compute.amazonaws.com
         port: 5057
+
+scheduling:
+  enabled: true

@@ -1,9 +1,7 @@
 package com.joboffers.infrastructure.offer.http;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.joboffers.domain.offer.OfferFetcher;
 import com.joboffers.domain.offer.dto.JobOfferResponse;
-import com.joboffers.infrastructure.offer.JsonFormatter;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
@@ -11,6 +9,7 @@ import org.springframework.http.HttpHeaders;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -46,15 +45,16 @@ public class OfferHttpClient implements OfferFetcher {
                 log.info("Response Body was null returning empty list");
                 return Collections.emptyList();
             }
-            log.info("Response body returned: " + JsonFormatter.format(body));
+            log.info("Response body returned: " + body);
             return response.getBody();
         } catch (RestClientException e) {
             log.error("Error while fetching offers using http client: " + e.getMessage());
             return Collections.emptyList();
-        } catch (JsonProcessingException e) {
-            log.error("Error while parsing body to pretty JSON: " + e.getMessage());
-            return Collections.emptyList();
         }
+//        catch (JsonProcessingException e) {
+//            log.error("Error while parsing body to pretty JSON: " + e.getMessage());
+//            return Collections.emptyList();
+//        }
     }
 
     private String getUrlForService(String service) {

@@ -1,0 +1,5 @@
+offer:
+  fetchOffersOccurrence: "*/1 * * * * *"
+
+scheduling:
+  enabled: false

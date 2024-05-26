@@ -24,6 +24,7 @@
         <lombok.version>1.18.30</lombok.version>
         <mockito-core.version>4.9.0</mockito-core.version>
         <wiremock-jre8.version>2.35.0</wiremock-jre8.version>
+        <awaitility.version>4.2.0</awaitility.version>
     </properties>
 
     <dependencies>
@@ -87,6 +88,11 @@
             <artifactId>wiremock-jre8-standalone</artifactId>
             <version>${wiremock-jre8.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <version>${awaitility.version}</version>
         </dependency>
 
     </dependencies>

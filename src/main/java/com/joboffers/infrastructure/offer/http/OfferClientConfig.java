@@ -1,5 +1,6 @@
 package com.joboffers.infrastructure.offer.http;
 
+import com.joboffers.domain.offer.OfferFetcher;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
@@ -28,8 +29,8 @@ public class OfferClientConfig {
     }
 
     @Bean
-    public OfferHttpClient offerFetcherRestTemplateClient(RestTemplate restTemplate,
-                                                          OfferFetcherRestTemplateClientConfigurationProperties properties) {
+    public OfferFetcher offerFetcherRestTemplateClient(RestTemplate restTemplate,
+                                                       OfferFetcherRestTemplateClientConfigurationProperties properties) {
         return new OfferHttpClient(restTemplate, properties.uri(), properties.port());
     }
 }
