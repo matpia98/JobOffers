@@ -8,7 +8,7 @@ class OfferMapper {
     static Offer mapFromOfferResponseDtoToOffer(OfferResponseDto dto) {
         return Offer.builder()
                 .url(dto.url())
-                .jobTitle(dto.jobTitle())
+                .position(dto.jobTitle())
                 .companyName(dto.companyName())
                 .salary(dto.salary())
                 .build();
@@ -16,8 +16,9 @@ class OfferMapper {
 
     static OfferResponseDto mapFromOfferToOfferResponseDto(Offer offer) {
         return OfferResponseDto.builder()
+                .id(offer.getId())
                 .url(offer.getUrl())
-                .jobTitle(offer.getJobTitle())
+                .jobTitle(offer.getPosition())
                 .companyName(offer.getCompanyName())
                 .salary(offer.getSalary())
                 .build();
@@ -26,7 +27,7 @@ class OfferMapper {
     static Offer mapFromOfferResponseToOffer(JobOfferResponse jobOfferResponse) {
         return Offer.builder()
                 .url(jobOfferResponse.offerUrl())
-                .jobTitle(jobOfferResponse.title())
+                .position(jobOfferResponse.title())
                 .companyName(jobOfferResponse.company())
                 .salary(jobOfferResponse.salary())
                 .build();

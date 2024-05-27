@@ -31,7 +31,7 @@ class OfferFacadeTest {
         OfferResponseDto offerResponseDto = offerFacade.saveOffer(offerRequestDto);
 
         // then
-        assertThat(offerResponseDto.id()).isEqualTo(0L);
+        assertThat(offerResponseDto.id()).isEqualTo("0");
         assertThat(offerResponseDto.url()).isNotNull();
         assertThat(offerResponseDto.jobTitle()).isEqualTo("Junior Java Developer");
         assertThat(offerResponseDto.companyName()).isEqualTo("Assecco");
@@ -158,10 +158,10 @@ class OfferFacadeTest {
         offerFacade.saveOffer(offerRequestDto);
 
         // when
-        OfferResponseDto offerDto = offerFacade.retrieveOfferById(0L);
+        OfferResponseDto offerDto = offerFacade.retrieveOfferById("0");
 
         // then
-        assertThat(offerDto.id()).isEqualTo(0L);
+        assertThat(offerDto.id()).isEqualTo("0");
         assertThat(offerDto.url()).isNotNull();
         assertThat(offerDto.jobTitle()).isEqualTo("Junior Java Developer");
         assertThat(offerDto.companyName()).isEqualTo("Assecco");
@@ -176,7 +176,7 @@ class OfferFacadeTest {
         assertThat(offerFacade.findAllOffers()).isEmpty();
 
         // when
-        Throwable throwable = catchThrowable(() -> offerFacade.retrieveOfferById(0L));
+        Throwable throwable = catchThrowable(() -> offerFacade.retrieveOfferById("0"));
 
         // then
         assertThat(throwable).isInstanceOf(OfferNotFoundException.class)

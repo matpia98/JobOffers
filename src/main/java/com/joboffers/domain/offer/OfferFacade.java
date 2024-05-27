@@ -18,34 +18,22 @@ public class OfferFacade {
         offerValidator.validate(offerRequestDto);
         offerValidator.validateUrl(offerRequestDto.url());
         Offer savedOffer = offerRepository.save(Offer.builder()
-                .jobTitle(offerRequestDto.jobTitle())
+                .position(offerRequestDto.jobTitle())
                 .companyName(offerRequestDto.companyName())
                 .salary(offerRequestDto.salary())
                 .url(offerRequestDto.url())
                 .build());
-        return OfferResponseDto.builder()
-                .id(savedOffer.getId())
-                .url(savedOffer.getUrl())
-                .jobTitle(savedOffer.getJobTitle())
-                .companyName(savedOffer.getCompanyName())
-                .salary(savedOffer.getSalary())
-                .build();
+        return OfferMapper.mapFromOfferToOfferResponseDto(savedOffer);
     }
 
     public List<OfferResponseDto> fetchAndSaveAllOffersIfNotExists() {
         return offerService.fetchAndSaveAllOffersIfNotExists();
     }
 
-    public OfferResponseDto retrieveOfferById(Long id) {
+    public OfferResponseDto retrieveOfferById(String id) {
         Offer offerById = offerRepository.findById(id)
                 .orElseThrow(() -> new OfferNotFoundException("Offer not found"));
-        return OfferResponseDto.builder()
-                .id(offerById.getId())
-                .url(offerById.getUrl())
-                .jobTitle(offerById.getJobTitle())
-                .companyName(offerById.getCompanyName())
-                .salary(offerById.getSalary())
-                .build();
+        return OfferMapper.mapFromOfferToOfferResponseDto(offerById);
     }
 
     public List<OfferResponseDto> findAllOffers() {
@@ -53,5 +41,6 @@ public class OfferFacade {
                 .stream()
                 .map(OfferMapper::mapFromOfferToOfferResponseDto)
                 .collect(Collectors.toList());
+
     }
 }
