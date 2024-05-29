@@ -1,7 +1,7 @@
 package com.joboffers.domain.offer;
 
 public class OfferNotValidException extends RuntimeException {
-    OfferNotValidException(String message) {
+    public OfferNotValidException(String message) {
         super(message);
     }
 }

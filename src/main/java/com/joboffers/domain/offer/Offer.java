@@ -10,7 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 @Data
 @Builder
 @Document(collection = "offers")
-public class Offer {
+class Offer {
     @Id
     private String id;
     @Field("position")
