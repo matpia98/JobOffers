@@ -5,6 +5,7 @@ import com.joboffers.domain.offer.dto.OfferResponseDto;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -19,5 +20,11 @@ public class OfferRestController {
     public ResponseEntity<List<OfferResponseDto>> getOffers() {
         List<OfferResponseDto> allOffers = offerFacade.findAllOffers();
         return ResponseEntity.ok(allOffers);
+    }
+
+    @GetMapping("/offers/{id}")
+    public ResponseEntity<OfferResponseDto> getOfferById(@PathVariable String id) {
+        OfferResponseDto offerResponseDto = offerFacade.retrieveOfferById(id);
+        return ResponseEntity.ok(offerResponseDto);
     }
 }
