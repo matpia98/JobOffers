@@ -180,7 +180,7 @@ class OfferFacadeTest {
 
         // then
         assertThat(throwable).isInstanceOf(OfferNotFoundException.class)
-                .hasMessage("Offer not found");
+                .hasMessage("Offer with id 0 not found");
     }
 
     @Test

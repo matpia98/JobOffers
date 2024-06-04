@@ -59,10 +59,10 @@ class InMemoryOfferRepository implements OfferRepository {
         String indexString = String.valueOf(index);
         Offer offer = new Offer(
                 indexString,
-                entity.getUrl(),
                 entity.getPosition(),
                 entity.getCompanyName(),
-                entity.getSalary()
+                entity.getSalary(),
+                entity.getUrl()
         );
         db.put(index, offer);
         return (S) offer;

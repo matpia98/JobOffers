@@ -17,7 +17,9 @@ import org.springframework.test.web.servlet.ResultActions;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -65,7 +67,8 @@ public class UserFetchingOffersTypicalPathIntegrationTest extends BaseIntegratio
         // then
         MvcResult mvcResult = perform.andExpect(status().isOk()).andReturn();
         String json = mvcResult.getResponse().getContentAsString();
-        List<OfferResponseDto> offerResponseDtoList = objectMapper.readValue(json, new TypeReference<>(){});
+        List<OfferResponseDto> offerResponseDtoList = objectMapper.readValue(json, new TypeReference<>() {
+        });
         assertThat(offerResponseDtoList).isEmpty();
 
         //   step 8: there are 2 new offers in external HTTP server
@@ -89,6 +92,43 @@ public class UserFetchingOffersTypicalPathIntegrationTest extends BaseIntegratio
         //   step 13: there are 2 new offers in external HTTP server
         //   step 14: scheduler ran 3rd time and made GET to external server and system added 2 new offers with ids: 3000 and 4000 to database
         //   step 15: user made GET /offers with header “Authorization: Bearer AAAA.BBBB.CCC” and system returned OK(200) with 4 offers with ids: 1000,2000, 3000 and 4000
+        //   step 16: user made POST /offers with header "Authorization: Bearer AAAA.BBBB.CCC" and offer as body and system returned CREATED(201) with saved offer
+        // given
+        // when
+        String jsonPostOffer = mockMvc.perform(post("/offers")
+                        .content("""
+                                {
+                                  "jobTitle": "Junior Java Developer",
+                                  "companyName": "Junior Java Ready",
+                                  "salary": "5000",
+                                  "url": "randomurl.com/adadada"
+                                }
+                                """)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().isCreated()).andReturn()
+                .getResponse().getContentAsString();
 
+        // then
+        OfferResponseDto responsePostOffer = objectMapper.readValue(jsonPostOffer, OfferResponseDto.class);
+        assertAll(
+                () -> assertThat(responsePostOffer.id()).isNotEmpty(),
+                () -> assertThat(responsePostOffer.url()).isEqualTo("randomurl.com/adadada"),
+                () -> assertThat(responsePostOffer.jobTitle()).isEqualTo("Junior Java Developer"),
+                () -> assertThat(responsePostOffer.companyName()).isEqualTo("Junior Java Ready"),
+                () -> assertThat(responsePostOffer.salary()).isEqualTo("5000")
+        );
+        //   step 17: user made GET /offers with header "Authorization: Bearer AAAA.BBBB.CCC" and system returned OK(200) with 1 offer
+        // given, when
+        ResultActions performGetOffers = mockMvc.perform(get("/offers")
+                .contentType(MediaType.APPLICATION_JSON_VALUE));
+
+        // then
+        String oneOfferJson = performGetOffers.andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        List<OfferResponseDto> parsedJsonWithOneOffer = objectMapper.readValue(oneOfferJson, new TypeReference<>() {});
+        assertThat(parsedJsonWithOneOffer).hasSize(1);
+        assertThat(parsedJsonWithOneOffer.stream().map(OfferResponseDto::id)).contains(responsePostOffer.id());
     }
 }
