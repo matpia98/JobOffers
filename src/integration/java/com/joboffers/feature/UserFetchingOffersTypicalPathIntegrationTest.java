@@ -11,8 +11,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
+import org.testcontainers.containers.MongoDBContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.utility.DockerImageName;
 
 import java.util.List;
 
@@ -25,6 +30,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 
 public class UserFetchingOffersTypicalPathIntegrationTest extends BaseIntegrationTest implements SampleJobOfferResponse {
+
+    @Container
+    public static final MongoDBContainer mongoDBContainer = new MongoDBContainer(DockerImageName.parse("mongo:4.0.10"));
+    @DynamicPropertySource
+    public static void propertyOverride(DynamicPropertyRegistry registry) {
+        registry.add("spring.data.mongodb.uri", mongoDBContainer::getReplicaSetUrl);
+    }
 
     @Autowired
     OfferFacade offerFacade;
@@ -39,7 +51,7 @@ public class UserFetchingOffersTypicalPathIntegrationTest extends BaseIntegratio
         wireMockServer.stubFor(WireMock.get("/offers")
                 .willReturn(WireMock.aResponse()
                         .withStatus(HttpStatus.OK.value())
-                        .withHeader("Content-Type", "application/json")
+                        .withHeader("Content-Type", "application/json;charset=UTF-8")
                         .withBody(bodyWithZeroOffersJson())));
 
 
@@ -61,9 +73,11 @@ public class UserFetchingOffersTypicalPathIntegrationTest extends BaseIntegratio
         //   step 7: user made GET /offers with header “Authorization: Bearer AAAA.BBBB.CCC” and system returned OK(200) with 0 offers
         // given
         String offersUrl = "/offers";
+
         // when
         ResultActions perform = mockMvc.perform(get(offersUrl)
                 .contentType(MediaType.APPLICATION_JSON));
+
         // then
         MvcResult mvcResult = perform.andExpect(status().isOk()).andReturn();
         String json = mvcResult.getResponse().getContentAsString();
@@ -72,11 +86,51 @@ public class UserFetchingOffersTypicalPathIntegrationTest extends BaseIntegratio
         assertThat(offerResponseDtoList).isEmpty();
 
         //   step 8: there are 2 new offers in external HTTP server
+        // given, when, then
+        wireMockServer.stubFor(WireMock.get("/offers")
+                .willReturn(WireMock.aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", "application/json;charset=UTF-8")
+                        .withBody(bodyWithTwoOffersJson())));
+
         //   step 9: scheduler ran 2nd time and made GET to external server and system added 2 new offers with ids: 1000 and 2000 to database
+        // given, when
+        List<OfferResponseDto> fetchTwoNewOffers = scheduler.fetchAndSaveAllOffersIfNotExists();
+
+        // then
+        assertThat(fetchTwoNewOffers).hasSize(2);
+
         //   step 10: user made GET /offers with header “Authorization: Bearer AAAA.BBBB.CCC” and system returned OK(200) with 2 offers with ids: 1000 and 2000
+        // given, when
+        ResultActions performGetOffersWithTwoOffersAdded = mockMvc.perform(get("/offers"));
+
+        // then
+        MvcResult performGetWithTwoOffersAddedMvcResult = performGetOffersWithTwoOffersAdded.andExpect(status().isOk()).andReturn();
+        String jsonWithTwoOffers = performGetWithTwoOffersAddedMvcResult.getResponse().getContentAsString();
+        List<OfferResponseDto> twoOffers = objectMapper.readValue(jsonWithTwoOffers, new TypeReference<>() {
+        });
+        assertThat(twoOffers).hasSize(2);
+        OfferResponseDto expectedFirstOffer = fetchTwoNewOffers.get(0);
+        OfferResponseDto expectedSecondOffer = fetchTwoNewOffers.get(1);
+        assertThat(twoOffers).containsExactlyInAnyOrder(
+                new OfferResponseDto(
+                        expectedFirstOffer.id(),
+                        expectedFirstOffer.url(),
+                        expectedFirstOffer.jobTitle(),
+                        expectedFirstOffer.companyName(),
+                        expectedFirstOffer.salary()),
+                new OfferResponseDto(
+                        expectedSecondOffer.id(),
+                        expectedSecondOffer.url(),
+                        expectedSecondOffer.jobTitle(),
+                        expectedSecondOffer.companyName(),
+                        expectedSecondOffer.salary()
+                ));
+
         //   step 11: user made GET /offers/9999 and system returned NOT_FOUND(404) with message “Offer with id 9999 not found”
         // given, when
         ResultActions performGetOfferWithNotExistingId = mockMvc.perform(get("/offers/9999"));
+
         // then
         performGetOfferWithNotExistingId.andExpect(status().isNotFound())
                 .andExpect(content().json(
@@ -89,9 +143,79 @@ public class UserFetchingOffersTypicalPathIntegrationTest extends BaseIntegratio
                 ));
 
         //   step 12: user made GET /offers/1000 and system returned OK(200) with offer
+        // given
+        String offerWithExistingIdUrl = "/offers/" + expectedFirstOffer.id();
+
+        // when
+        ResultActions performGetOfferWithExistingId = mockMvc.perform(get(offerWithExistingIdUrl)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        MvcResult performGetOfferWithExistingIdMvcResult = performGetOfferWithExistingId.andExpect(status().isOk()).andReturn();
+        String jsonGetOfferWithExistingId = performGetOfferWithExistingIdMvcResult.getResponse().getContentAsString();
+        OfferResponseDto existingOffer = objectMapper.readValue(jsonGetOfferWithExistingId, OfferResponseDto.class);
+        assertThat(existingOffer).isEqualTo(
+                new OfferResponseDto(
+                        expectedFirstOffer.id(),
+                        expectedFirstOffer.url(),
+                        expectedFirstOffer.jobTitle(),
+                        expectedFirstOffer.companyName(),
+                        expectedFirstOffer.salary())
+        );
+
+
         //   step 13: there are 2 new offers in external HTTP server
+        // given, when, then
+        wireMockServer.stubFor(WireMock.get("/offers")
+                .willReturn(WireMock.aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", "application/json;charset=UTF-8")
+                        .withBody(bodyWithFourOffersJson())));
         //   step 14: scheduler ran 3rd time and made GET to external server and system added 2 new offers with ids: 3000 and 4000 to database
+        // given, when
+        List<OfferResponseDto> newTwoOffersFetchedWithFourInAll = scheduler.fetchAndSaveAllOffersIfNotExists();
+        // then
+        assertThat(newTwoOffersFetchedWithFourInAll).hasSize(2);
+        assertThat(offerFacade.findAllOffers()).hasSize(4);
         //   step 15: user made GET /offers with header “Authorization: Bearer AAAA.BBBB.CCC” and system returned OK(200) with 4 offers with ids: 1000,2000, 3000 and 4000
+        // given, when
+        ResultActions performGetWithFourOffers = mockMvc.perform(get("/offers").contentType(MediaType.APPLICATION_JSON));
+        // then
+        MvcResult performGetWithFourOffersMvcResult = performGetWithFourOffers.andExpect(status().isOk()).andReturn();
+        String jsonFourOffers = performGetWithFourOffersMvcResult.getResponse().getContentAsString();
+        List<OfferResponseDto> fourOffersResponse = objectMapper.readValue(jsonFourOffers, new TypeReference<List<OfferResponseDto>>() {
+        });
+        assertThat(fourOffersResponse).hasSize(4);
+        OfferResponseDto expectedThirdOffer = newTwoOffersFetchedWithFourInAll.get(0);
+        OfferResponseDto expectedFourthOffer = newTwoOffersFetchedWithFourInAll.get(1);
+
+        assertThat(fourOffersResponse).containsExactlyInAnyOrder(
+                new OfferResponseDto(
+                        expectedFirstOffer.id(),
+                        expectedFirstOffer.url(),
+                        expectedFirstOffer.jobTitle(),
+                        expectedFirstOffer.companyName(),
+                        expectedFirstOffer.salary()),
+                new OfferResponseDto(
+                        expectedSecondOffer.id(),
+                        expectedSecondOffer.url(),
+                        expectedSecondOffer.jobTitle(),
+                        expectedSecondOffer.companyName(),
+                        expectedSecondOffer.salary()),
+                new OfferResponseDto(
+                        expectedThirdOffer.id(),
+                        expectedThirdOffer.url(),
+                        expectedThirdOffer.jobTitle(),
+                        expectedThirdOffer.companyName(),
+                        expectedThirdOffer.salary()),
+                new OfferResponseDto(
+                        expectedFourthOffer.id(),
+                        expectedFourthOffer.url(),
+                        expectedFourthOffer.jobTitle(),
+                        expectedFourthOffer.companyName(),
+                        expectedFourthOffer.salary())
+        );
+
         //   step 16: user made POST /offers with header "Authorization: Bearer AAAA.BBBB.CCC" and offer as body and system returned CREATED(201) with saved offer
         // given
         // when
@@ -127,8 +251,9 @@ public class UserFetchingOffersTypicalPathIntegrationTest extends BaseIntegratio
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
-        List<OfferResponseDto> parsedJsonWithOneOffer = objectMapper.readValue(oneOfferJson, new TypeReference<>() {});
-        assertThat(parsedJsonWithOneOffer).hasSize(1);
+        List<OfferResponseDto> parsedJsonWithOneOffer = objectMapper.readValue(oneOfferJson, new TypeReference<>() {
+        });
+        assertThat(parsedJsonWithOneOffer).hasSize(5);
         assertThat(parsedJsonWithOneOffer.stream().map(OfferResponseDto::id)).contains(responsePostOffer.id());
     }
 }

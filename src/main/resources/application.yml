@@ -3,6 +3,7 @@ spring:
     mongodb:
       uri: mongodb://admin:admin@localhost:27018/offers
 
+
 offer:
   fetchOffersOccurrence: "0 0 */3 * * ?"
   http:
@@ -15,3 +16,10 @@ offer:
 
 scheduling:
   enabled: true
+
+server:
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
