@@ -8,9 +8,12 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Collections;
@@ -42,13 +45,13 @@ public class OfferHttpClient implements OfferFetcher {
             List<JobOfferResponse> body = response.getBody();
             if (body == null) {
                 log.info("Response Body was null returning empty list");
-                return Collections.emptyList();
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
             }
             log.info("Response body returned: " + body);
             return response.getBody();
-        } catch (RestClientException e) {
+        } catch (ResourceAccessException e) {
             log.error("Error while fetching offers using http client: " + e.getMessage());
-            return Collections.emptyList();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 //        catch (JsonProcessingException e) {
 //            log.error("Error while parsing body to pretty JSON: " + e.getMessage());

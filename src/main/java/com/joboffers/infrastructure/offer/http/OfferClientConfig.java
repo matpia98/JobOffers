@@ -28,6 +28,22 @@ public class OfferClientConfig {
                 .build();
     }
 
+
+    public RestTemplate restTemplateTestConfig(RestTemplateResponseErrorHandler restTemplateResponseErrorHandler,
+                                     int connectionTimeout, int readTimeout) {
+        return new RestTemplateBuilder()
+                .errorHandler(restTemplateResponseErrorHandler)
+                .setConnectTimeout(Duration.ofMillis(connectionTimeout))
+                .setReadTimeout(Duration.ofMillis(readTimeout))
+                .build();
+    }
+
+
+    public OfferFetcher offerFetcherRestTemplateClientTestConfig(RestTemplate restTemplate,
+                                                                 String uri, int port) {
+        return new OfferHttpClient(restTemplate, uri, port);
+    }
+
     @Bean
     public OfferFetcher offerFetcherRestTemplateClient(RestTemplate restTemplate,
                                                        OfferFetcherRestTemplateClientConfigurationProperties properties) {
