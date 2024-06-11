@@ -4,8 +4,12 @@ import com.joboffers.domain.loginandregister.dto.CreateUserDto;
 import com.joboffers.domain.loginandregister.dto.RegistrationResultDto;
 import com.joboffers.domain.loginandregister.dto.UserDto;
 import lombok.AllArgsConstructor;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Component;
 
 @AllArgsConstructor
+@Component
 public class LoginAndRegisterFacade {
 
     private final UserRepository userRepository;
@@ -22,7 +26,7 @@ public class LoginAndRegisterFacade {
 
     public UserDto findUserByUsername(String username) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User with username: " + username + " not found"));
+                .orElseThrow(() -> new BadCredentialsException("User with username: " + username + " not found"));
         return UserDto.builder()
                 .id(user.getId())
                 .username(user.getUsername())

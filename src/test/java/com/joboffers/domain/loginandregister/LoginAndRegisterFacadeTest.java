@@ -5,6 +5,7 @@ import com.joboffers.domain.loginandregister.dto.RegistrationResultDto;
 import com.joboffers.domain.loginandregister.dto.UserDto;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
