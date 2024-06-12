@@ -1,5 +1,7 @@
 package com.joboffers.infrastructure.loginandregister.controller;
 
+import com.joboffers.infrastructure.loginandregister.controller.dto.JwtResponseDto;
+import com.joboffers.infrastructure.loginandregister.controller.dto.TokenRequestDto;
 import com.joboffers.infrastructure.security.jwt.JwtAuthenticator;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -16,7 +18,6 @@ public class TokenController {
 
     @PostMapping("/token")
     public ResponseEntity<JwtResponseDto> authenticateAndGenerateToken(@Valid @RequestBody TokenRequestDto tokenRequest) {
-        System.out.println("Received request: " + tokenRequest);
         final JwtResponseDto jwtResponse = jwtAuthenticatorFacade.authenticateAndGenerateToken(tokenRequest);
         return ResponseEntity.ok(jwtResponse);
     }

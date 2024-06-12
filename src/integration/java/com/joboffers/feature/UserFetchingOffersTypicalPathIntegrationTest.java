@@ -4,8 +4,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.joboffers.BaseIntegrationTest;
 import com.joboffers.SampleJobOfferResponse;
+import com.joboffers.domain.loginandregister.LoginAndRegisterFacade;
+import com.joboffers.domain.loginandregister.dto.RegistrationResultDto;
 import com.joboffers.domain.offer.OfferFacade;
 import com.joboffers.domain.offer.dto.OfferResponseDto;
+import com.joboffers.infrastructure.loginandregister.controller.dto.JwtResponseDto;
 import com.joboffers.infrastructure.offer.scheduler.OfferFetcherScheduler;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +46,9 @@ public class UserFetchingOffersTypicalPathIntegrationTest extends BaseIntegratio
 
     @Autowired
     OfferFetcherScheduler scheduler;
+
+    @Autowired
+    LoginAndRegisterFacade loginAndRegisterFacade;
 
     @Test
     public void should_scheduler_fetch_offers_from_external_http_server_and_user_should_see_them() throws Exception {
@@ -88,14 +94,62 @@ public class UserFetchingOffersTypicalPathIntegrationTest extends BaseIntegratio
                         """.trim()));
 
         //   step 4: user made GET /offers with no jwt token and system returned UNAUTHORIZED(401)
-        //   step 5: user made POST /register with username=someUser, password=somePassword and system registered user with status OK(200)
+        // given, when
+        ResultActions failedGetOffersRequest = mockMvc.perform(get("/offers")
+                .contentType(MediaType.APPLICATION_JSON_VALUE));
+
+        // then
+        failedGetOffersRequest.andExpect(status().isUnauthorized());
+        //   step 5: user made POST /register with username=someUser, password=somePassword and system registered user with status CREATED(201)
+        // given, when
+        ResultActions registerAction = mockMvc.perform(post("/register")
+                .content("""
+                        {
+                        "username": "someUser",
+                        "password": "somePassword"
+                        }
+                        """.trim())
+                .contentType(MediaType.APPLICATION_JSON_VALUE));
+
+        // then
+        MvcResult registerActionResult = registerAction.andExpect(status().isCreated()).andReturn();
+        String registerActionResultJson = registerActionResult.getResponse().getContentAsString();
+        RegistrationResultDto registrationResultDto = objectMapper.readValue(registerActionResultJson, RegistrationResultDto.class);
+        assertAll(
+                () -> assertThat(registrationResultDto.username()).isEqualTo("someUser"),
+                () -> assertThat(registrationResultDto.created()).isTrue(),
+                () -> assertThat(registrationResultDto.id()).isNotNull()
+                );
+
+
         //   step 6: user tried to get JWT token by requesting POST /token with username=someUser, password=somePassword and system returned OK(200) and jwttoken=AAAA.BBBB.CCC
+        // given, when
+        ResultActions successLoginRequest = mockMvc.perform(post("/token")
+                .content("""
+                        {
+                        "username": "someUser",
+                        "password": "somePassword"
+                        }
+                        """.trim())
+                .contentType(MediaType.APPLICATION_JSON_VALUE));
+
+        // then
+        MvcResult successLoginRequestMvc = successLoginRequest.andExpect(status().isOk()).andReturn();
+        String jsonSuccessLoginRequest = successLoginRequestMvc.getResponse().getContentAsString();
+        JwtResponseDto jwtResponse = objectMapper.readValue(jsonSuccessLoginRequest, JwtResponseDto.class);
+        String token = jwtResponse.token();
+        assertAll(
+                () -> assertThat(jwtResponse.username()).isEqualTo("someUser"),
+                () -> assertThat(token).matches("^[A-Za-z0-9-_]+?\\.[A-Za-z0-9-_]+?\\.[A-Za-z0-9-_]+$")
+        );
+
         //   step 7: user made GET /offers with header “Authorization: Bearer AAAA.BBBB.CCC” and system returned OK(200) with 0 offers
         // given
         String offersUrl = "/offers";
 
         // when
         ResultActions perform = mockMvc.perform(get(offersUrl)
+                        .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON));
 
         // then

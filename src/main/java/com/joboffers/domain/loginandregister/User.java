@@ -15,7 +15,7 @@ import java.util.Collection;
 @Document
 class User implements UserDetails {
     @Id
-    private Long id;
+    private String id;
     @Indexed(unique = true)
     private String username;
     private String password;

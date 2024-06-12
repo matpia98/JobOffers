@@ -1,11 +1,10 @@
 package com.joboffers.domain.loginandregister;
 
-import com.joboffers.domain.loginandregister.dto.CreateUserDto;
+import com.joboffers.domain.loginandregister.dto.RegisterUserDto;
 import com.joboffers.domain.loginandregister.dto.RegistrationResultDto;
 import com.joboffers.domain.loginandregister.dto.UserDto;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 @AllArgsConstructor
@@ -15,11 +14,12 @@ public class LoginAndRegisterFacade {
     private final UserRepository userRepository;
     private final UserValidator userValidator;
 
-    public RegistrationResultDto registerUser(CreateUserDto createUserDto) {
-        userValidator.validate(createUserDto.username(), createUserDto.password());
+
+    public RegistrationResultDto registerUser(RegisterUserDto registerUserDto) {
+        userValidator.validate(registerUserDto.username(), registerUserDto.password());
         User savedUser = userRepository.save(User.builder()
-                .username(createUserDto.username())
-                .password(createUserDto.password())
+                .username(registerUserDto.username())
+                .password(registerUserDto.password())
                 .build());
         return new RegistrationResultDto(savedUser.getId(), savedUser.getUsername(), true);
     }
@@ -30,6 +30,7 @@ public class LoginAndRegisterFacade {
         return UserDto.builder()
                 .id(user.getId())
                 .username(user.getUsername())
+                .password(user.getPassword())
                 .build();
     }
 }

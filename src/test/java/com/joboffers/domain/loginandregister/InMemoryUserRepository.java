@@ -17,6 +17,7 @@ class InMemoryUserRepository implements UserRepository {
 
     private Map<Long, User> db = new ConcurrentHashMap<>();
     private AtomicLong index = new AtomicLong(0);
+
     @Override
     public Optional<User> findByUsername(String username) {
         return db.values().stream()
@@ -25,12 +26,17 @@ class InMemoryUserRepository implements UserRepository {
     }
 
     @Override
-    public User save(User user) {
+    public <S extends User> S save(S entity) {
         long index = this.index.getAndIncrement();
-        user.setId(index);
-        db.put(index, user);
-        return user;
+        User userToSave = new User(
+                String.valueOf(index),
+                entity.getUsername(),
+                entity.getPassword()
+        );
+        db.put(index, userToSave);
+        return (S) userToSave;
     }
+
 
     @Override
     public <S extends User> S insert(S entity) {
@@ -76,6 +82,8 @@ class InMemoryUserRepository implements UserRepository {
     public <S extends User, R> R findBy(Example<S> example, Function<FluentQuery.FetchableFluentQuery<S>, R> queryFunction) {
         return null;
     }
+
+
 
     @Override
     public <S extends User> List<S> saveAll(Iterable<S> entities) {

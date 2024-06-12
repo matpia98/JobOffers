@@ -1,11 +1,11 @@
 package com.joboffers.domain.loginandregister;
 
-import com.joboffers.domain.loginandregister.dto.CreateUserDto;
+import com.joboffers.domain.loginandregister.dto.RegisterUserDto;
 import com.joboffers.domain.loginandregister.dto.RegistrationResultDto;
 import com.joboffers.domain.loginandregister.dto.UserDto;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.authentication.BadCredentialsException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
@@ -18,7 +18,7 @@ class LoginAndRegisterFacadeTest {
     public void should_register_user() {
         // given
         LoginAndRegisterFacade loginAndRegisterFacade = LoginAndRegisterFacadeTestConfiguration.createForTest(userRepository);
-        CreateUserDto userToSave = CreateUserDto.builder()
+        RegisterUserDto userToSave = RegisterUserDto.builder()
                 .username("username123")
                 .password("username")
                 .build();
@@ -26,7 +26,7 @@ class LoginAndRegisterFacadeTest {
         RegistrationResultDto savedUserDto = loginAndRegisterFacade.registerUser(userToSave);
 
         // then
-        assertThat(savedUserDto.id()).isEqualTo(0L);
+        assertThat(savedUserDto.id()).isEqualTo("0");
         assertThat(savedUserDto.username()).isEqualTo("username123");
         Assertions.assertTrue(savedUserDto.created());
     }
@@ -35,7 +35,7 @@ class LoginAndRegisterFacadeTest {
     public void should_find_user_by_username() {
         // given
         LoginAndRegisterFacade loginAndRegisterFacade = LoginAndRegisterFacadeTestConfiguration.createForTest(userRepository);
-        CreateUserDto userToSave = CreateUserDto.builder()
+        RegisterUserDto userToSave = RegisterUserDto.builder()
                 .username("username123")
                 .password("username")
                 .build();
@@ -53,7 +53,7 @@ class LoginAndRegisterFacadeTest {
     public void should_throw_exception_when_user_not_found() {
         // given
         LoginAndRegisterFacade loginAndRegisterFacade = LoginAndRegisterFacadeTestConfiguration.createForTest(userRepository);
-        CreateUserDto userToSave = CreateUserDto.builder()
+        RegisterUserDto userToSave = RegisterUserDto.builder()
                 .username("username123")
                 .password("username")
                 .build();
@@ -63,7 +63,7 @@ class LoginAndRegisterFacadeTest {
         Throwable throwable = catchThrowable(() -> loginAndRegisterFacade.findUserByUsername("username321"));
 
         // then
-        assertThat(throwable).isInstanceOf(UsernameNotFoundException.class)
+        assertThat(throwable).isInstanceOf(BadCredentialsException.class)
                 .hasMessage("User with username: username321 not found");
     }
 
@@ -71,7 +71,7 @@ class LoginAndRegisterFacadeTest {
     public void should_throw_exception_when_user_gave_invalid_data_in_registering() {
         // given
         LoginAndRegisterFacade loginAndRegisterFacade = LoginAndRegisterFacadeTestConfiguration.createForTest(userRepository);
-        CreateUserDto userToSave = CreateUserDto.builder()
+        RegisterUserDto userToSave = RegisterUserDto.builder()
                 .username("username123")
                 .password("")
                 .build();
@@ -87,13 +87,13 @@ class LoginAndRegisterFacadeTest {
     public void should_throw_exception_when_user_gave_username_in_registering_which_exists() {
         // given
         LoginAndRegisterFacade loginAndRegisterFacade = LoginAndRegisterFacadeTestConfiguration.createForTest(userRepository);
-        CreateUserDto userToSave = CreateUserDto.builder()
+        RegisterUserDto userToSave = RegisterUserDto.builder()
                 .username("username123")
                 .password("username")
                 .build();
         loginAndRegisterFacade.registerUser(userToSave);
 
-        CreateUserDto userToSave2 = CreateUserDto.builder()
+        RegisterUserDto userToSave2 = RegisterUserDto.builder()
                 .username("username123")
                 .password("username123")
                 .build();

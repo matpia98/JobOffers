@@ -1,7 +1,7 @@
 package com.joboffers.domain.loginandregister.dto;
 
 public record RegistrationResultDto(
-        Long id,
+        String id,
         String username,
         boolean created
 ) {
