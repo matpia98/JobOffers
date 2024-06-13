@@ -176,7 +176,9 @@ public class UserFetchingOffersTypicalPathIntegrationTest extends BaseIntegratio
 
         //   step 10: user made GET /offers with header “Authorization: Bearer AAAA.BBBB.CCC” and system returned OK(200) with 2 offers with ids: 1000 and 2000
         // given, when
-        ResultActions performGetOffersWithTwoOffersAdded = mockMvc.perform(get("/offers"));
+        ResultActions performGetOffersWithTwoOffersAdded = mockMvc.perform(get("/offers")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON));
 
         // then
         MvcResult performGetWithTwoOffersAddedMvcResult = performGetOffersWithTwoOffersAdded.andExpect(status().isOk()).andReturn();
@@ -203,7 +205,9 @@ public class UserFetchingOffersTypicalPathIntegrationTest extends BaseIntegratio
 
         //   step 11: user made GET /offers/9999 and system returned NOT_FOUND(404) with message “Offer with id 9999 not found”
         // given, when
-        ResultActions performGetOfferWithNotExistingId = mockMvc.perform(get("/offers/9999"));
+        ResultActions performGetOfferWithNotExistingId = mockMvc.perform(get("/offers/9999")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON));
 
         // then
         performGetOfferWithNotExistingId.andExpect(status().isNotFound())
@@ -222,6 +226,7 @@ public class UserFetchingOffersTypicalPathIntegrationTest extends BaseIntegratio
 
         // when
         ResultActions performGetOfferWithExistingId = mockMvc.perform(get(offerWithExistingIdUrl)
+                .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON));
 
         // then
@@ -253,7 +258,9 @@ public class UserFetchingOffersTypicalPathIntegrationTest extends BaseIntegratio
         assertThat(offerFacade.findAllOffers()).hasSize(4);
         //   step 15: user made GET /offers with header “Authorization: Bearer AAAA.BBBB.CCC” and system returned OK(200) with 4 offers with ids: 1000,2000, 3000 and 4000
         // given, when
-        ResultActions performGetWithFourOffers = mockMvc.perform(get("/offers").contentType(MediaType.APPLICATION_JSON));
+        ResultActions performGetWithFourOffers = mockMvc.perform(get("/offers")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON));
         // then
         MvcResult performGetWithFourOffersMvcResult = performGetWithFourOffers.andExpect(status().isOk()).andReturn();
         String jsonFourOffers = performGetWithFourOffersMvcResult.getResponse().getContentAsString();
@@ -302,6 +309,7 @@ public class UserFetchingOffersTypicalPathIntegrationTest extends BaseIntegratio
                                   "url": "randomurl.com/adadada"
                                 }
                                 """)
+                        .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isCreated()).andReturn()
                 .getResponse().getContentAsString();
@@ -318,6 +326,7 @@ public class UserFetchingOffersTypicalPathIntegrationTest extends BaseIntegratio
         //   step 17: user made GET /offers with header "Authorization: Bearer AAAA.BBBB.CCC" and system returned OK(200) with 1 offer
         // given, when
         ResultActions performGetOffers = mockMvc.perform(get("/offers")
+                .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON_VALUE));
 
         // then

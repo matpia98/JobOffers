@@ -2,7 +2,6 @@ package com.joboffers.infrastructure.security.jwt;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.exceptions.JWTCreationException;
 import com.joboffers.infrastructure.loginandregister.controller.dto.JwtResponseDto;
 import com.joboffers.infrastructure.loginandregister.controller.dto.TokenRequestDto;
 import lombok.AllArgsConstructor;
@@ -13,6 +12,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -23,6 +23,7 @@ public class JwtAuthenticator {
 
     private final AuthenticationManager authenticationManager;
     private final Clock clock;
+    private final JwtConfigurationProperties properties;
 
     public JwtResponseDto authenticateAndGenerateToken(TokenRequestDto tokenRequest) {
         Authentication authenticate = authenticationManager.authenticate(
@@ -38,15 +39,13 @@ public class JwtAuthenticator {
     }
 
     private String createToken(User user) {
-        String secretKey = "ugabuga";
+        String secretKey = properties.secret();
         Algorithm algorithm = Algorithm.HMAC256(secretKey);
         Instant now = LocalDateTime.now(clock).toInstant(ZoneOffset.UTC);
-        Instant expiresAt = now.plusMillis(2592000000L);
-        String issuer = "Job Offers Service";
-
+        Instant expiresAt = now.plus(Duration.ofDays(properties.expirationDays()));
+        String issuer = properties.issuer();
         return JWT.create()
                 .withSubject(user.getUsername())
-                .withClaim("role", "admin")
                 .withIssuedAt(now)
                 .withExpiresAt(expiresAt)
                 .withIssuer(issuer)
