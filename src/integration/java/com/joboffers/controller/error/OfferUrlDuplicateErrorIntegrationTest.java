@@ -3,6 +3,8 @@ package com.joboffers.controller.error;
 import com.joboffers.BaseIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.ResultActions;
@@ -25,6 +27,7 @@ public class OfferUrlDuplicateErrorIntegrationTest extends BaseIntegrationTest {
 
 
     @Test
+    @WithMockUser
     public void should_return_409_conflict_when_added_second_offer_with_same_url() throws Exception {
         // step 1:
         // given, when
