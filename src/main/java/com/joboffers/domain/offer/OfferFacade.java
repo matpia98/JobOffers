@@ -3,6 +3,7 @@ package com.joboffers.domain.offer;
 import com.joboffers.domain.offer.dto.OfferRequestDto;
 import com.joboffers.domain.offer.dto.OfferResponseDto;
 import lombok.AllArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,6 +37,7 @@ public class OfferFacade {
         return OfferMapper.mapFromOfferToOfferResponseDto(offerById);
     }
 
+    @Cacheable("jobOffers")
     public List<OfferResponseDto> findAllOffers() {
         return offerRepository.findAll()
                 .stream()
