@@ -33,9 +33,15 @@ public class OfferRestController {
         return ResponseEntity.ok(offerResponseDto);
     }
 
-    @PostMapping("/offers")
+    @PostMapping("/offers/save")
     public ResponseEntity<OfferResponseDto> postOffer(@RequestBody @Valid OfferRequestDto offerRequestDto) {
         OfferResponseDto offerResponseDto = offerFacade.saveOffer(offerRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(offerResponseDto);
+    }
+
+    @PostMapping("/offers/fetch")
+    public ResponseEntity<String> fetchOffers() {
+        List<OfferResponseDto> fetchedOffers = offerFacade.fetchAndSaveAllOffersIfNotExists();
+        return ResponseEntity.ok("Fetched " + fetchedOffers.size() + " new offers.");
     }
 }
